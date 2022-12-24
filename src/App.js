@@ -1,39 +1,39 @@
 import React, { useState, useMemo, useEffect } from "react"
-import axios from "axios"
 import "./styles/App.css"
-import Counter from "./components/Counter"
-import ClassCounter from "./components/ClassCounter"
 // import PostItem from "./components/PostItem"
 import PostList from "./components/PostList"
 import MyButton from "./components/UI/button/MyButton"
-import MyInput from "./components/UI/input/MyInput"
 import PostForm from "./components/PostForm"
-import MySelect from "./components/UI/select/MySelect"
 import PostFilter from "./components/PostFilter"
 import MyModal from "./components/UI/modal/MyModal"
 import { usePosts } from "./hooks/usePosts"
 import PostService from "./API/PostService"
 import MyLoader from "./components/UI/loader/MyLoader"
+import useFetching from "./hooks/useFetching"
+import getPageCount from "./utils/pages"
+import Pagination from "./components/UI/pagination/Pagination"
 
 function App() {
   const [posts, setPosts] = useState([])
   const [filter, setFilter] = useState({ sort: "", query: "" })
   const [modal, setModal] = useState(false)
-  const [isPostsLoading, setIsPostsLoading] = useState(false)
+  const [totalPages, setTotalPages] = useState(0)
+  const [limit, setLimit] = useState(10)
+  const [page, setPage] = useState(1)
+
+  const [fetchPosts, isPostsLoading, postError] = useFetching(
+    async (limit, page) => {
+      const response = await PostService.getAll(limit, page)
+      setPosts(response.data)
+      const totalCount = response.headers["x-total-count"]
+      setTotalPages(getPageCount(totalCount, limit))
+    }
+  )
 
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
 
-  async function fetchPosts() {
-    setIsPostsLoading(true)
-    setTimeout(async () => {
-      const posts = await PostService.getAll()
-      setPosts(posts)
-      setIsPostsLoading(false)
-    }, 2000)
-  }
-
   useEffect(() => {
-    fetchPosts()
+    fetchPosts(limit, page)
   }, [])
 
   const createPost = (newPost) => {
@@ -45,6 +45,11 @@ function App() {
     setPosts((posts) => {
       return posts.filter((post) => post.id !== id)
     })
+  }
+
+  const changePage = (page) => {
+    setPage(page)
+    fetchPosts(limit, page)
   }
 
   return (
@@ -60,6 +65,7 @@ function App() {
       </MyModal>
       <hr style={{ margin: "15px 0" }} />
       <PostFilter filter={filter} setFilter={setFilter} />
+      {postError && <h1>Произошла ошибка</h1>}
       {isPostsLoading ? (
         <div
           style={{
@@ -77,6 +83,7 @@ function App() {
           title="Посты"
         />
       )}
+      <Pagination totalPages={totalPages} page={page} changePage={changePage} />
     </div>
   )
 }
