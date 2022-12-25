@@ -56,7 +56,7 @@ function Posts() {
         style={{ marginTop: "25px" }}
         onClick={() => setModal((prev) => !prev)}
       >
-        Создать пользователя
+        Создать пост
       </MyButton>
       <MyModal visible={modal} setVisible={setModal}>
         <PostForm create={createPost} />
