@@ -72,11 +72,17 @@
 .navbar {
   height: 50px;
   width: 100%;
+  background-color: lightgray;
+}
+
+.navbar__container {
+  height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 15px;
   display: flex;
   align-items: center;
-  justify-content: start;
-  padding: 0 15px;
-  background-color: lightgray;
+  justify-content: space-between;
 }
 
 .navbar__links {
