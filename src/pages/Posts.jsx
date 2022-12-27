@@ -22,11 +22,15 @@ function Posts() {
   const [page, setPage] = useState(1)
   const [autoFetching, setAutoFetching] = useState(true)
   const lastElement = useRef()
-  const lastLimit = useRef(null)
+  const lastLimit = useRef(limit)
 
   const [fetchPosts, isPostsLoading, postError] = useFetching(
     async (limit, page = 1) => {
       const response = await PostService.getAll(limit, page)
+
+      const totalCount = response.headers["x-total-count"]
+      setTotalPages(getPageCount(totalCount, limit))
+
       if (autoFetching) {
         if (page === 1) {
           setPosts(response.data)
@@ -36,8 +40,6 @@ function Posts() {
       } else {
         setPosts(response.data)
       }
-      const totalCount = response.headers["x-total-count"]
-      setTotalPages(getPageCount(totalCount, limit))
     }
   )
 
@@ -55,7 +57,7 @@ function Posts() {
 
   useEffect(() => {
     if (limit !== lastLimit.current) {
-      fetchPosts(limit)
+      fetchPosts(limit, 1)
       lastLimit.current = limit
       return
     }
@@ -132,7 +134,7 @@ function Posts() {
         posts={sortedAndSearchedPosts}
         title="Посты"
       />
-      <div ref={lastElement} style={{ height: 20 }} />
+      <div ref={lastElement} style={{ height: 20, padding: "50px 0px"}} />
       {isPostsLoading && (
         <div
           style={{
